@@ -73,6 +73,7 @@ rde = ET.SubElement(ruleset, "remote_dns_exceptions")
 # Reading and parsing loop
 serverIDnameDict = {}
 reading = ""
+namelessServerNumber = 1
 for nLine, line in enumerate(cscpSource):
 	line = line.rstrip()
 	if line.startswith('['):
@@ -99,15 +100,19 @@ for nLine, line in enumerate(cscpSource):
 		lAttrib = str(line.split("=")[0].lower())
 		attribValue = str(line.split("=")[1])
 		if reading == "server":
-
 			tmpServer.set("is_default", "false")
 
 			if lAttrib == "name":
 				tmpServer.set("name", attribValue)
 			
 			elif lAttrib == "id":
-				serverIDnameDict[attribValue] = tmpServer.attrib["name"]
-
+				try:
+					serverIDnameDict[attribValue] = tmpServer.attrib["name"]
+				except:
+					namelessServerName = "Server " + str(namelessServerNumber)
+					serverIDnameDict[attribValue] = namelessServerName
+					tmpServer.set("name", namelessServerName)
+					namelessServerNumber =+ 1
 			elif lAttrib == "ipaddress":
 				tmpServer.set("hostname", attribValue)
 
@@ -127,15 +132,15 @@ for nLine, line in enumerate(cscpSource):
 					tmpServer.set("auth_method", "password")
 				if attribValue == "3":
 					print("WARNING! Could not convert line " + str(nLine + 1))
-					print("Motive: This authentication methor does not exist in ProxyCap. It will be converted to 'Anonymous'")
+					print("Reason: This authentication method does not exist in ProxyCap. It will be converted to 'Anonymous'")
 					tmpServer.set("auth_method", "none")
 				if attribValue == "4":
 					print("WARNING! Could not convert line " + str(nLine + 1))
-					print("Motive: This authentication methor does not exist in ProxyCap. It will be converted to 'Anonymous'")
+					print("Reason: This authentication method does not exist in ProxyCap. It will be converted to 'Anonymous'")
 					tmpServer.set("auth_method", "none")
 				if attribValue == "5":
 					print("WARNING! Could not convert line " + str(nLine + 1))
-					print("Motive: This authentication methor does not exist in ProxyCap. It will be converted to 'Anonymous'")
+					print("Reason: This authentication method does not exist in ProxyCap. It will be converted to 'Anonymous'")
 					tmpServer.set("auth_method", "none")
 
 		elif reading == "serverUser":
@@ -160,11 +165,11 @@ for nLine, line in enumerate(cscpSource):
 					tmpRule.set("action", "block")
 				elif attribValue == "3":
 					print("WARNING! Could not convert line " + str(nLine + 1))
-					print("Motive: The action 'Bind' does not exist in ProxyCap. It will be converted to the equivalent of Socksify\n")
+					print("Reason: The action 'Bind' does not exist in ProxyCap. It will be converted to the equivalent of Socksify\n")
 					tmpRule.set("action", "proxy")
 				elif attribValue == "4":
 					print("WARNING! Could not convert line" + str(nLine + 1))
-					print("Motive: The action 'Socksify with direct fallback' does not exist in ProxyCap. It will be converted to the equivalent of Socksify\n")
+					print("Reason: The action 'Socksify with direct fallback' does not exist in ProxyCap. It will be converted to the equivalent of Socksify\n")
 					tmpRule.set("action", "proxy")
 			elif lAttrib == "name":
 				if '*' in attribValue:
@@ -208,7 +213,7 @@ finalTree = ET.ElementTree(ruleset)
 ET.indent(finalTree, space="  ", level=0)
 finalTree.write(targetFileName, encoding="utf-8", xml_declaration=True)
 
-xmlTarget.write('\n\n<!-- Created automatically with cscp2xml.py (https://github.com/LeviPO/cscp2xml) -->')
+xmlTarget.write('\n\n<!-- Created automatically with cscp2xml.py-->')
 xmlTarget.write('\n<!-- By: Levi Oliveira  -->')
 
 
